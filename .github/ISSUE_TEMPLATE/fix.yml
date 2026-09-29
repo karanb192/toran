@@ -1,0 +1,21 @@
+name: Suggest a fix
+description: Something about a toran, a word or a region is wrong.
+title: "Fix"
+labels: [fix]
+body:
+  - type: textarea
+    id: wrong
+    attributes:
+      label: What is wrong
+    validations:
+      required: true
+  - type: textarea
+    id: right
+    attributes:
+      label: What it should be
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Source, if you have one

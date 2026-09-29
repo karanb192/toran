@@ -1,0 +1,26 @@
+name: Add a door
+description: One line about a door you remember. Accepted lines hang on the toran.
+title: "Door"
+labels: [door]
+body:
+  - type: input
+    id: place
+    attributes:
+      label: Place
+      description: City, town, village or neighbourhood. Up to 40 characters.
+    validations:
+      required: true
+  - type: textarea
+    id: line
+    attributes:
+      label: Line
+      description: One sentence about the door, what hung on it, or who tied it. Up to 140 characters, no links.
+    validations:
+      required: true
+  - type: checkboxes
+    id: consent
+    attributes:
+      label: Consent
+      options:
+        - label: I wrote this, and it can appear on the site with my GitHub username.
+          required: true

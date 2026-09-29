@@ -1,0 +1,57 @@
+:root {
+  --ink: #2b1d12;
+  --paper: #ece1cd;
+  --chip: rgba(255, 250, 240, 0.82);
+  --line: rgba(43, 29, 18, 0.18);
+  --accent: #c2560a;
+  --serif: "Iowan Old Style", "Charter", Georgia, serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: var(--paper); color: var(--ink); font: 15px/1.45 var(--serif); }
+html.night { --ink: #f3e6cf; --paper: #1c1822; --chip: rgba(40, 32, 46, 0.8); --line: rgba(243, 230, 207, 0.2); }
+canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; touch-action: none; display: block; }
+button, select, a.pill { font: inherit; color: var(--ink); }
+.top, .bottom { position: fixed; left: 0; right: 0; display: flex; align-items: center; gap: 10px; padding: 12px 16px; pointer-events: none; }
+.top { top: 0; justify-content: space-between; padding-top: max(12px, env(safe-area-inset-top)); }
+.bottom { bottom: 0; flex-wrap: wrap; justify-content: space-between; padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+.top > *, .bottom > * { pointer-events: auto; }
+.brand { display: flex; align-items: baseline; gap: 10px; }
+h1 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: 0.01em; }
+#script { font-size: 16px; opacity: 0.75; }
+.actions { display: flex; gap: 8px; align-items: center; }
+.pill, .icon { background: var(--chip); border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px; cursor: pointer; text-decoration: none; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.pill:disabled { opacity: 0.7; cursor: default; }
+.icon { width: 38px; height: 38px; padding: 0; display: grid; place-items: center; }
+.icon svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.icon .spk { fill: currentColor; }
+.icon .on { display: none; }
+.icon[aria-pressed="true"] .on { display: inline; }
+.icon[aria-pressed="true"] .off { display: none; }
+.icon[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+.wind { display: flex; align-items: center; gap: 8px; background: var(--chip); border: 1px solid var(--line); border-radius: 999px; padding: 5px 6px 5px 14px; font-size: 13.5px; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.wind select { border: 0; background: transparent; border-left: 1px solid var(--line); padding: 2px 6px; font-size: 13.5px; cursor: pointer; }
+.variants { display: flex; gap: 4px; background: var(--chip); border: 1px solid var(--line); border-radius: 999px; padding: 4px; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.variants a { color: var(--ink); text-decoration: none; padding: 4px 12px; border-radius: 999px; font-size: 13.5px; }
+.variants a[aria-current] { background: var(--ink); color: var(--paper); }
+.caption { position: fixed; margin: 0; padding: 0 20px; text-align: center; color: #f3e6cf; font-style: italic; font-size: 16px; pointer-events: none; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6); }
+.caption a { color: #ffc970; pointer-events: auto; margin-left: 4px; }
+.caption.fade { animation: fade 7s ease forwards; }
+@keyframes fade { 0% { opacity: 0; } 6% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
+dialog { max-width: min(520px, calc(100vw - 32px)); border: 1px solid var(--line); border-radius: 14px; background: #fbf6ec; color: #2b1d12; padding: 22px 24px; }
+dialog::backdrop { background: rgba(20, 12, 6, 0.45); }
+dialog h2 { margin: 0 0 8px; font-size: 20px; }
+dialog p { margin: 0 0 12px; }
+dialog a { color: #9a4308; }
+dialog .pill { color: #2b1d12; background: #fff; border-color: rgba(43, 29, 18, 0.2); }
+.credits { font-size: 13.5px; color: #5c4a3a; border-top: 1px solid rgba(43, 29, 18, 0.15); padding-top: 12px; }
+#clipSheet video { display: block; width: 100%; max-height: 62vh; border-radius: 8px; background: #000; }
+#clipSheet .row { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+html.og .top .actions, html.og .bottom, html.og .caption { display: none; }
+html.og h1 { font-size: 34px; }
+@media (max-width: 640px) {
+  .bottom { justify-content: center; gap: 8px; }
+  .wind { order: 0; width: 100%; justify-content: space-between; }
+  h1 { font-size: 20px; }
+}
+@media (prefers-reduced-motion: reduce) { .caption.fade { animation-duration: 0.01s; opacity: 1; } }
