@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Toran</title>
+<meta name="description" content="A marigold door garland you can brush. The bells ring, and it sways with the live wind where you are.">
+<meta name="theme-color" content="#ece1cd">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://toran.karanbansal.in/">
+<meta property="og:title" content="Toran">
+<meta property="og:description" content="A marigold door garland you can brush. The bells ring, and it sways with the live wind where you are.">
+<meta property="og:image" content="https://toran.karanbansal.in/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Toran">
+<meta name="twitter:description" content="A marigold door garland you can brush. The bells ring, and it sways with the live wind where you are.">
+<meta name="twitter:image" content="https://toran.karanbansal.in/og.png">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<canvas id="scene" aria-label="A toran hanging over a doorway. Brush it to ring the bells."></canvas>
+
+<header class="top">
+  <div class="brand"><h1>Toran</h1><span id="script" lang="hi">तोरण</span></div>
+  <div class="actions">
+    <button id="sound" class="icon" type="button" aria-pressed="false" aria-label="Bells sound">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path class="spk" d="M4 9h4l5-4v14l-5-4H4z"/><path class="on" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/><path class="off" d="M16 9l5 6M21 9l-5 6"/></svg>
+    </button>
+    <button id="clip" class="pill" type="button">Clip</button>
+  </div>
+</header>
+
+<p id="caption" class="caption" aria-live="polite"></p>
+
+<footer class="bottom">
+  <div class="wind"><span id="windText">Checking the wind</span>
+    <label class="sr" for="city">Wind from</label><select id="city"></select></div>
+  <nav class="variants" aria-label="Toran style">
+    <a href="#genda">Marigold</a><a href="#aam">Mango leaf</a><a href="#moti">Beaded</a>
+  </nav>
+  <button id="aboutBtn" class="pill" type="button">About</button>
+</footer>
+
+<dialog id="about">
+  <h2>Toran</h2>
+  <p>A toran hangs over the door on festival days, strung with marigolds and mango leaves, sometimes beads and small bells. This one hangs in your browser. Brush it and the bells ring. It sways with the wind where you are, from live weather data.</p>
+  <p>Tap a leaf to read a door someone remembers. <a href="https://github.com/karanb192/toran/issues/new?template=door.yml" target="_blank" rel="noopener">Add a line about yours.</a> Each accepted line hangs on a leaf with a yellow knot.</p>
+  <p>Got a detail wrong about your region's toran? <a href="https://github.com/karanb192/toran/issues/new?template=fix.yml" target="_blank" rel="noopener">Suggest a fix.</a></p>
+  <p>There is one secret.</p>
+  <p class="credits">Inspired by <a href="https://marinabudarina.github.io/chimes/" target="_blank" rel="noopener">Chimes</a> by Marina Budarina, a beaded curtain for every country. The strings use Verlet physics, the approach in <a href="https://codepen.io/shubniggurath/pen/ZYpjorm" target="_blank" rel="noopener">Liam Egan's CodePen</a> that Chimes builds on. Wind from <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> (CC BY 4.0). Made by <a href="https://karanbansal.in" target="_blank" rel="noopener">Karan Bansal</a>. <a href="https://github.com/karanb192/toran" target="_blank" rel="noopener">Code</a> under MIT.</p>
+  <button id="aboutClose" class="pill" type="button">Close</button>
+</dialog>
+
+<dialog id="clipSheet">
+  <video id="clipVideo" controls playsinline loop></video>
+  <div class="row">
+    <a id="clipSave" class="pill">Save</a>
+    <button id="clipShare" class="pill" type="button" hidden>Share</button>
+    <button id="clipClose" class="pill" type="button">Close</button>
+  </div>
+</dialog>
+
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
