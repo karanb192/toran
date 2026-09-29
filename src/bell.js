@@ -73,7 +73,7 @@ export class Bells {
   }
 
   ring(freq, intensity = 0.5) {
-    if (!this.on || !this.ctx || this.ctx.state !== 'running' || this.active > 16) return;
+    if (!this.on || !this.ctx || this.ctx.state !== 'running' || this.active >= 16) return;
     const c = this.ctx;
     const now = c.currentTime;
     const peak = (this.night ? 0.1 : 0.14) * (0.35 + 0.65 * intensity);
