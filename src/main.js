@@ -498,7 +498,7 @@ setInterval(() => {
 S.variant = variantFromHash();
 resize();
 setVariant(S.variant);
-say(soundWanted ? 'Sound is on. Tap the toran to hear the bells.' : 'Brush the toran. Tap the speaker to hear the bells.');
+say(soundWanted ? 'Tap or click to resume the bells.' : 'Brush the toran. Tap the speaker to hear the bells.');
 const home = cityForTimeZone(Intl.DateTimeFormat().resolvedOptions().timeZone);
 citySel.value = home.id;
 selectedCity = home;

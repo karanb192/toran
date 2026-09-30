@@ -39,7 +39,7 @@ for (const hard of [false, true]) {
     await expectPlaying(page);
     await reload();
     await expect(page.locator('#sound')).toHaveAttribute('aria-pressed', 'true');
-    await expect(page.locator('#caption')).toContainText('Tap the toran');
+    await expect(page.locator('#caption')).toHaveText('Tap or click to resume the bells.');
     expect(await page.evaluate(() => globalThis.__bells.ctx)).toBeNull();
     await page.locator('canvas').click({ position: { x: 100, y: 200 } });
     await expectPlaying(page);
