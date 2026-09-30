@@ -44,6 +44,10 @@ Door pull requests created with `GITHUB_TOKEN` need a maintainer to select **App
 
 Something wrong about a region's toran? [Suggest a fix](https://github.com/karanb192/toran/issues/new?template=fix.yml).
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Security reports go to the address in [SECURITY.md](SECURITY.md).
+
 ## Credits
 
 Inspired by [Chimes](https://marinabudarina.github.io/chimes/) by [Marina Budarina](https://budarina.design), a beaded doorway curtain for every country. The strings use Verlet physics, the approach in [Liam Egan's CodePen](https://codepen.io/shubniggurath/pen/ZYpjorm) that Chimes builds on. No code, art or sound from either is used here. Wind data by [Open-Meteo](https://open-meteo.com/), CC BY 4.0.
