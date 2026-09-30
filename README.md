@@ -11,10 +11,12 @@ Live at [toran.karanbansal.in](https://toran.karanbansal.in).
 - City and location wind refresh through the same timer. Late responses from a previous selection cannot change the current wind. A failed refresh preserves a reading only for the same selected place. If browser storage is blocked, the cache and rate-limit pause last for the current page session.
 - **Three torans.** Marigold, a mango-leaf thoranam, and a beaded moti toran. Each has its own link (`#genda`, `#aam`, `#moti`).
 - **Clip** records five seconds of the canvas with the bells, ready to save or share.
-- **Sound is off** until you tap the speaker, and motion is toned down when your system asks for reduced motion. Reduced-motion captions stay visible for seven seconds, then hide without animation.
+- **Sound is off on your first visit.** The speaker remembers your on/off choice in this browser, including after a refresh. If you left sound on, tap, click or press a key to resume the bells when you return. Motion is toned down when your system asks for reduced motion. Reduced-motion captions stay visible for seven seconds, then hide without animation.
 - There is one secret.
 
 The page is plain HTML, CSS and JavaScript with no build step and no runtime dependencies. Flowers, beads, leaves and bells are drawn in code, and the bells are synthesized with the Web Audio API, so a first visit loads under 100 KB of code and no images.
+
+The sound choice stays in local browser storage. If storage is blocked or cleared, the next visit starts muted. Restoring sound waits for an interaction to respect [browser audio policies](https://developer.chrome.com/blog/autoplay/#web-audio).
 
 ## Run it
 
