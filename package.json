@@ -3,7 +3,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test",
+    "test": "node --test test/*.test.mjs",
+    "test:browser": "playwright test",
     "serve": "python3 -m http.server 8391"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0"
   }
 }
