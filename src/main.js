@@ -341,17 +341,58 @@ window.addEventListener('resize', () => {
 document.addEventListener('visibilitychange', () => (document.hidden ? bells.pause() : bells.resume()));
 
 const soundBtn = $('sound');
-soundBtn.addEventListener('click', async () => {
-  if (bells.on) {
+let soundWanted = false;
+let soundVersion = 0;
+try {
+  soundWanted = localStorage.getItem('toran:sound') === 'on';
+} catch {}
+soundBtn.setAttribute('aria-pressed', String(soundWanted));
+
+async function startSound(preview = false) {
+  const version = soundVersion;
+  try {
+    await bells.enable();
+    // A pending browser resume must not undo a later mute.
+    if (!soundWanted) {
+      bells.disable();
+      return;
+    }
+    if (version !== soundVersion) return;
+    if (preview) {
+      const mid = S.T.bells[Math.floor(S.T.bells.length / 2)];
+      if (mid) ring(mid, 0.5, false);
+    }
+  } catch {
+    if (version !== soundVersion) return;
     bells.disable();
+    soundWanted = false;
     soundBtn.setAttribute('aria-pressed', 'false');
+    say('Sound could not start. Tap the speaker to try again.');
+  }
+}
+
+soundBtn.addEventListener('click', () => {
+  soundWanted = !soundWanted;
+  soundVersion++;
+  soundBtn.setAttribute('aria-pressed', String(soundWanted));
+  try {
+    localStorage.setItem('toran:sound', soundWanted ? 'on' : 'off');
+  } catch {}
+  if (!soundWanted) {
+    bells.disable();
     return;
   }
-  await bells.enable();
-  soundBtn.setAttribute('aria-pressed', 'true');
-  const mid = S.T.bells[Math.floor(S.T.bells.length / 2)];
-  if (mid) ring(mid, 0.5, false);
+  startSound(true);
 });
+
+function resumeSavedSound(event) {
+  if (!event.isTrusted || soundBtn.contains(event.target) || !soundWanted) return;
+  if (!bells.on || bells.ctx?.state !== 'running') startSound();
+}
+// Touch may grant audio permission on release rather than on pointerdown.
+for (const type of ['pointerdown', 'pointerup', 'click', 'keydown']) {
+  document.addEventListener(type, resumeSavedSound, { capture: true });
+}
 
 const citySel = $('city');
 for (const c of CITIES) citySel.add(new Option(c.name, c.id));
@@ -457,7 +498,7 @@ setInterval(() => {
 S.variant = variantFromHash();
 resize();
 setVariant(S.variant);
-say('Brush the toran. Tap the speaker to hear the bells.');
+say(soundWanted ? 'Sound is on. Tap the toran to hear the bells.' : 'Brush the toran. Tap the speaker to hear the bells.');
 const home = cityForTimeZone(Intl.DateTimeFormat().resolvedOptions().timeZone);
 citySel.value = home.id;
 selectedCity = home;
