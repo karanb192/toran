@@ -348,6 +348,21 @@ try {
 } catch {}
 soundBtn.setAttribute('aria-pressed', String(soundWanted));
 
+function showSoundHint() {
+  if (document.visibilityState !== 'visible') return;
+  document.removeEventListener('visibilitychange', showSoundHint);
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches || params.has('og')) return;
+  try {
+    if (localStorage.getItem('toran:sound') !== null || localStorage.getItem('toran:sound-hint') === 'seen') return;
+    // Save before animating so denied storage cannot cause a hint on every visit.
+    localStorage.setItem('toran:sound-hint', 'seen');
+    soundBtn.classList.add('sound-hint');
+    soundBtn.addEventListener('animationend', () => soundBtn.classList.remove('sound-hint'), { once: true });
+  } catch {}
+}
+document.addEventListener('visibilitychange', showSoundHint);
+showSoundHint();
+
 async function startSound(preview = false) {
   const version = soundVersion;
   try {
@@ -372,6 +387,7 @@ async function startSound(preview = false) {
 }
 
 soundBtn.addEventListener('click', () => {
+  soundBtn.classList.remove('sound-hint');
   soundWanted = !soundWanted;
   soundVersion++;
   soundBtn.setAttribute('aria-pressed', String(soundWanted));
