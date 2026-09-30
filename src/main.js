@@ -344,7 +344,14 @@ const soundBtn = $('sound');
 let soundWanted = false;
 let soundVersion = 0;
 try {
-  soundWanted = localStorage.getItem('toran:sound') === 'on';
+  const savedSound = localStorage.getItem('toran:sound');
+  soundWanted = savedSound === 'on';
+  if (savedSound === null && !reduced && !params.has('og') && localStorage.getItem('toran:sound-hint') !== 'seen') {
+    // Save before animating so denied storage cannot cause a hint on every visit.
+    localStorage.setItem('toran:sound-hint', 'seen');
+    soundBtn.classList.add('sound-hint');
+    soundBtn.addEventListener('animationend', () => soundBtn.classList.remove('sound-hint'), { once: true });
+  }
 } catch {}
 soundBtn.setAttribute('aria-pressed', String(soundWanted));
 
@@ -372,6 +379,7 @@ async function startSound(preview = false) {
 }
 
 soundBtn.addEventListener('click', () => {
+  soundBtn.classList.remove('sound-hint');
   soundWanted = !soundWanted;
   soundVersion++;
   soundBtn.setAttribute('aria-pressed', String(soundWanted));

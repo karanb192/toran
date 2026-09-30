@@ -18,6 +18,8 @@ The page is plain HTML, CSS and JavaScript with no build step and no runtime dep
 
 The sound choice stays in local browser storage. If storage is blocked or cleared, the next visit starts muted. Restoring sound waits for an interaction to respect [browser audio policies](https://developer.chrome.com/blog/autoplay/#web-audio).
 
+On a first visit, the speaker pulses gently twice over three seconds to point out the bells. The hint stops when you tap the speaker and does not repeat after a reload or a saved sound choice. Reduced motion and blocked storage skip the hint.
+
 ## Run it
 
 ```sh
