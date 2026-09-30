@@ -287,8 +287,11 @@ function tap(x, y) {
   else say('Nobody has hung a door here yet. ', 'Add yours', ADD_URL);
 }
 
+let captionTimer;
 function say(text, linkText, href) {
   const cap = $('caption');
+  clearTimeout(captionTimer);
+  cap.hidden = false;
   cap.textContent = text;
   if (linkText) {
     const a = document.createElement('a');
@@ -301,6 +304,7 @@ function say(text, linkText, href) {
   cap.classList.remove('fade');
   void cap.offsetWidth;
   cap.classList.add('fade');
+  if (reduced) captionTimer = setTimeout(() => (cap.hidden = true), 7000);
 }
 
 function showDoor(d) {
@@ -355,6 +359,7 @@ citySel.add(new Option('My location', 'here'));
 
 const windSource = createWindSource();
 let selectedCity = null;
+let liveWindCity = null;
 let windSelection = 0;
 let windRequest = 0;
 
@@ -367,10 +372,12 @@ async function loadWind(city, refresh = false) {
   if (w) {
     S.wind = w;
     S.live = true;
+    liveWindCity = city;
     S.windText = windLabel(city.name, w);
-  } else if (!(refresh && S.live)) {
+  } else if (!(refresh && S.live && liveWindCity === city)) {
     S.wind = GENTLE;
     S.live = false;
+    liveWindCity = null;
     S.windText = windLabel(city.name, null);
   }
   $('windText').textContent = S.windText;

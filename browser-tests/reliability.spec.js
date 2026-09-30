@@ -29,6 +29,23 @@ test('reduced motion keeps instructions and style captions visible', async ({ pa
   await expect(page.locator('#caption')).toHaveCSS('opacity', '1');
 });
 
+test('reduced-motion captions hide after seven seconds and reset for new text', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.clock.install();
+  await page.goto('/');
+  const caption = page.locator('#caption');
+  await page.clock.fastForward(6000);
+  await expect(caption).toBeVisible();
+  await page.locator('a[href="#aam"]').click();
+  await page.clock.fastForward(1100);
+  await expect(caption).toBeVisible();
+  await page.clock.fastForward(6000);
+  await expect(caption).toBeHidden();
+  await page.locator('a[href="#moti"]').click();
+  await expect(caption).toBeVisible();
+  await expect(caption).toHaveCSS('opacity', '1');
+});
+
 for (const firstLift of ['owner', 'other']) {
   test(`two fingers release cleanly when ${firstLift} lifts first`, async ({ page, context }) => {
     await page.goto('/');
@@ -119,6 +136,26 @@ test('a delayed city response cannot overwrite a newer selection', async ({ page
   await page.waitForTimeout(100);
   await expect(page.locator('#city')).toHaveValue('london');
   await expect(page.locator('#windText')).toHaveText('Wind in London, 28 km/h from the east');
+});
+
+test('a failed refresh during a city switch cannot retain the previous city wind', async ({ page }) => {
+  const pending = [];
+  await page.route(WEATHER, (route) => {
+    if (route.request().url().includes('latitude=19.08')) pending.push(route);
+    else return route.fulfill({ json: wind(28) });
+  });
+  await page.clock.install();
+  await page.goto('/');
+  await expect(page.locator('#windText')).toContainText('Wind in Delhi');
+  await page.clock.fastForward(15 * 60 * 1000 - 1000);
+  await page.locator('#city').selectOption('mumbai');
+  await expect.poll(() => pending.length).toBe(1);
+  await page.clock.fastForward(1000);
+  await expect.poll(() => pending.length).toBe(2);
+  for (const route of pending) await route.fulfill({ status: 500, json: {} });
+  await expect(page.locator('#city')).toHaveValue('mumbai');
+  await expect(page.locator('#windText')).toHaveText('A gentle breeze');
+  expect(await page.evaluate(() => globalThis.__scene.S.live)).toBe(false);
 });
 
 for (const outcome of ['success', 'error']) {
