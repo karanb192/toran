@@ -1,7 +1,7 @@
 import { distToSegment } from './physics.js';
 import { VARIANTS, layout, buildToran, drawToran, drawBackground, drawNight } from './toran.js';
 import { Bells } from './bell.js';
-import { CITIES, cityForTimeZone, fetchWind, windForce, windLabel, gust } from './wind.js';
+import { CITIES, GENTLE, cityForTimeZone, createWindSource, windForce, windLabel, gust } from './wind.js';
 import { canRecord, recordClip } from './record.js';
 import { loadDoors, ADD_URL } from './doors.js';
 
@@ -17,7 +17,7 @@ const CLIP_MS = 5000;
 const S = {
   W: 0, H: 0, dpr: 1, door: null, T: null, bg: null,
   variant: 'genda', night: false, t: 0, acc: 0, last: 0,
-  wind: { speed: 5, dir: 270 }, place: '', windText: '', recording: false,
+  wind: GENTLE, live: false, force: windForce(GENTLE.speed, GENTLE.dir), place: '', windText: windLabel('', null), recording: false,
 };
 const bells = new Bells();
 const ptr = { x: 0, y: 0, px: 0, py: 0, seen: false, dirty: false, speed: 0, grab: null, down: false, moved: 0, downT: 0, type: 'mouse' };
@@ -64,9 +64,13 @@ const WF = { x: 0, y: 0 };
 function step(dt) {
   S.t += dt;
   const scale = reduced ? 0.35 : 1;
-  const wf = windForce(S.wind.speed, S.wind.dir);
-  const steady = wf.steady * scale;
-  const amp = wf.gust * scale;
+  // Ease toward the target wind so a new reading never jolts the garland.
+  const target = windForce(S.wind.speed, S.wind.dir);
+  const k = 1 - Math.exp(-dt / 1.2);
+  S.force.steady += (target.steady - S.force.steady) * k;
+  S.force.gust += (target.gust - S.force.gust) * k;
+  const steady = S.force.steady * scale;
+  const amp = S.force.gust * scale;
   const t = S.t;
   S.T.world.step(dt, (p) => {
     WF.x = (steady + amp * gust(t, p.s)) * p.w;
@@ -341,13 +345,19 @@ const citySel = $('city');
 for (const c of CITIES) citySel.add(new Option(c.name, c.id));
 citySel.add(new Option('My location', 'here'));
 
-async function loadWind(city) {
-  S.place = city.name;
-  try {
-    S.wind = await fetchWind(city.lat, city.lon);
-    S.windText = windLabel(city.name, S.wind);
-  } catch {
-    S.wind = { speed: 5, dir: 270 };
+const windSource = createWindSource();
+
+// A refresh that fails keeps the wind already showing. A new place that fails falls back to a
+// gentle breeze with no place named, so the page never reports an outage.
+async function loadWind(city, refresh = false) {
+  const w = await windSource(city.lat, city.lon);
+  if (w) {
+    S.wind = w;
+    S.live = true;
+    S.windText = windLabel(city.name, w);
+  } else if (!(refresh && S.live)) {
+    S.wind = GENTLE;
+    S.live = false;
     S.windText = windLabel(city.name, null);
   }
   $('windText').textContent = S.windText;
@@ -426,5 +436,5 @@ loadDoors().then((d) => {
   doors = d;
   hangDoors();
 });
-setInterval(() => citySel.value !== 'here' && loadWind(CITIES.find((c) => c.id === citySel.value)), 15 * 60 * 1000);
+setInterval(() => citySel.value !== 'here' && loadWind(CITIES.find((c) => c.id === citySel.value), true), 15 * 60 * 1000);
 requestAnimationFrame(frame);
