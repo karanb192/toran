@@ -71,3 +71,55 @@ test('preview-image mode does not consume the first-visit hint', async ({ page }
   await page.goto('/');
   await expect(page.locator('#sound')).toHaveClass(/sound-hint/);
 });
+
+test.describe('initially hidden page', () => {
+  test.beforeEach(async ({ page }) => {
+    // Model visibility explicitly; headless tab focus does not reliably hide a document.
+    await page.addInitScript(() => {
+      let state = 'hidden';
+      Object.defineProperty(document, 'visibilityState', { get: () => state });
+      Object.defineProperty(document, 'hidden', { get: () => state !== 'visible' });
+      globalThis.setPageVisibility = (next) => {
+        state = next;
+        document.dispatchEvent(new Event('visibilitychange'));
+      };
+    });
+  });
+
+  test('waits for visibility before consuming the hint and starts it only once', async ({ page }) => {
+    await page.goto('/');
+    const speaker = page.locator('#sound');
+    expect(await page.evaluate(() => localStorage.getItem('toran:sound-hint'))).toBeNull();
+    await expect(speaker).not.toHaveClass(/sound-hint/);
+    await page.evaluate(() => globalThis.setPageVisibility('hidden'));
+    expect(await page.evaluate(() => localStorage.getItem('toran:sound-hint'))).toBeNull();
+    await page.evaluate(() => globalThis.setPageVisibility('visible'));
+    await expect(speaker).toHaveClass(/sound-hint/);
+    expect(await page.evaluate(() => localStorage.getItem('toran:sound-hint'))).toBe('seen');
+    await expect(speaker).not.toHaveClass(/sound-hint/, { timeout: 4500 });
+    await page.evaluate(() => {
+      globalThis.setPageVisibility('hidden');
+      globalThis.setPageVisibility('visible');
+    });
+    await expect(speaker).not.toHaveClass(/sound-hint/);
+  });
+
+  test('rechecks a sound choice saved before the page becomes visible', async ({ page }) => {
+    await page.goto('/');
+    await page.evaluate(() => {
+      localStorage.setItem('toran:sound', 'off');
+      globalThis.setPageVisibility('visible');
+    });
+    await expect(page.locator('#sound')).not.toHaveClass(/sound-hint/);
+    expect(await page.evaluate(() => localStorage.getItem('toran:sound-hint'))).toBeNull();
+  });
+
+  test('rechecks reduced motion when the page becomes visible', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await page.goto('/');
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.evaluate(() => globalThis.setPageVisibility('visible'));
+    await expect(page.locator('#sound')).not.toHaveClass(/sound-hint/);
+    expect(await page.evaluate(() => localStorage.getItem('toran:sound-hint'))).toBeNull();
+  });
+});

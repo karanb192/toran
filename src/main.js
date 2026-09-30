@@ -344,16 +344,24 @@ const soundBtn = $('sound');
 let soundWanted = false;
 let soundVersion = 0;
 try {
-  const savedSound = localStorage.getItem('toran:sound');
-  soundWanted = savedSound === 'on';
-  if (savedSound === null && !reduced && !params.has('og') && localStorage.getItem('toran:sound-hint') !== 'seen') {
+  soundWanted = localStorage.getItem('toran:sound') === 'on';
+} catch {}
+soundBtn.setAttribute('aria-pressed', String(soundWanted));
+
+function showSoundHint() {
+  if (document.visibilityState !== 'visible') return;
+  document.removeEventListener('visibilitychange', showSoundHint);
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches || params.has('og')) return;
+  try {
+    if (localStorage.getItem('toran:sound') !== null || localStorage.getItem('toran:sound-hint') === 'seen') return;
     // Save before animating so denied storage cannot cause a hint on every visit.
     localStorage.setItem('toran:sound-hint', 'seen');
     soundBtn.classList.add('sound-hint');
     soundBtn.addEventListener('animationend', () => soundBtn.classList.remove('sound-hint'), { once: true });
-  }
-} catch {}
-soundBtn.setAttribute('aria-pressed', String(soundWanted));
+  } catch {}
+}
+document.addEventListener('visibilitychange', showSoundHint);
+showSoundHint();
 
 async function startSound(preview = false) {
   const version = soundVersion;
