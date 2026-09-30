@@ -54,4 +54,4 @@ html.og h1 { font-size: 34px; }
   .wind { order: 0; width: 100%; justify-content: space-between; }
   h1 { font-size: 20px; }
 }
-@media (prefers-reduced-motion: reduce) { .caption.fade { animation-duration: 0.01s; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .caption.fade { animation: none; opacity: 1; } }

@@ -95,22 +95,30 @@ const MIN = 60 * 1000;
 // null and never rejects; null means "no fresh wind", and the caller decides what to keep.
 export function createWindSource({
   fetchImpl = (...a) => fetch(...a),
-  storage = globalThis.localStorage,
+  storage,
   now = () => Date.now(),
   ttl = 30 * MIN,
   backoff = 30 * MIN,
   timeout = 5000,
 } = {}) {
+  if (storage === undefined) {
+    try {
+      storage = globalThis.localStorage;
+    } catch {}
+  }
+  const memory = new Map();
   const read = (k) => {
     try {
-      return JSON.parse(storage.getItem(k));
+      const value = storage?.getItem(k);
+      return value == null ? memory.get(k) ?? null : JSON.parse(value);
     } catch {
-      return null;
+      return memory.get(k) ?? null;
     }
   };
   const write = (k, v) => {
+    memory.set(k, v);
     try {
-      storage.setItem(k, JSON.stringify(v));
+      storage?.setItem(k, JSON.stringify(v));
     } catch {}
   };
   const PAUSE = 'toran:wind:pause';

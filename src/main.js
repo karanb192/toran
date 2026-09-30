@@ -20,7 +20,7 @@ const S = {
   wind: GENTLE, live: false, force: windForce(GENTLE.speed, GENTLE.dir), place: '', windText: windLabel('', null), recording: false,
 };
 const bells = new Bells();
-const ptr = { x: 0, y: 0, px: 0, py: 0, seen: false, dirty: false, speed: 0, grab: null, down: false, moved: 0, downT: 0, type: 'mouse' };
+const ptr = { id: null, x: 0, y: 0, px: 0, py: 0, seen: false, dirty: false, speed: 0, grab: null, down: false, moved: 0, downT: 0, type: 'mouse' };
 const play = { last: 0, start: 0, lock: 0 };
 let doors = [];
 let lastTouch = 0;
@@ -216,7 +216,9 @@ function setPtr(e) {
 }
 
 canvas.addEventListener('pointerdown', (e) => {
+  if (ptr.id !== null) return;
   canvas.setPointerCapture(e.pointerId);
+  ptr.id = e.pointerId;
   ptr.type = e.pointerType;
   setPtr(e);
   ptr.px = ptr.x;
@@ -236,6 +238,7 @@ canvas.addEventListener('pointerdown', (e) => {
 });
 
 canvas.addEventListener('pointermove', (e) => {
+  if (ptr.id !== null && e.pointerId !== ptr.id) return;
   const ox = ptr.x;
   const oy = ptr.y;
   if (e.pointerType === 'touch' && !ptr.down) return;
@@ -250,7 +253,8 @@ canvas.addEventListener('pointermove', (e) => {
   touched();
 });
 
-function release() {
+function release(e) {
+  if (e.pointerId !== ptr.id) return;
   if (ptr.grab) {
     const q = ptr.grab;
     q.px = q.x - (q.x - q.px) * 0.15;
@@ -258,11 +262,15 @@ function release() {
     q.grabbed = false;
   }
   ptr.grab = null;
-  if (ptr.down && ptr.moved < 6 && performance.now() - ptr.downT < 350) tap(ptr.x, ptr.y);
+  if (e.type === 'pointerup' && ptr.down && ptr.moved < 6 && performance.now() - ptr.downT < 350) tap(ptr.x, ptr.y);
+  ptr.id = null;
   ptr.down = false;
+  ptr.dirty = false;
+  ptr.seen = false;
 }
 canvas.addEventListener('pointerup', release);
 canvas.addEventListener('pointercancel', release);
+canvas.addEventListener('lostpointercapture', release);
 canvas.addEventListener('pointerleave', () => (ptr.seen = false));
 
 function tap(x, y) {
@@ -279,8 +287,11 @@ function tap(x, y) {
   else say('Nobody has hung a door here yet. ', 'Add yours', ADD_URL);
 }
 
+let captionTimer;
 function say(text, linkText, href) {
   const cap = $('caption');
+  clearTimeout(captionTimer);
+  cap.hidden = false;
   cap.textContent = text;
   if (linkText) {
     const a = document.createElement('a');
@@ -293,6 +304,7 @@ function say(text, linkText, href) {
   cap.classList.remove('fade');
   void cap.offsetWidth;
   cap.classList.add('fade');
+  if (reduced) captionTimer = setTimeout(() => (cap.hidden = true), 7000);
 }
 
 function showDoor(d) {
@@ -346,33 +358,50 @@ for (const c of CITIES) citySel.add(new Option(c.name, c.id));
 citySel.add(new Option('My location', 'here'));
 
 const windSource = createWindSource();
+let selectedCity = null;
+let liveWindCity = null;
+let windSelection = 0;
+let windRequest = 0;
 
 // A refresh that fails keeps the wind already showing. A new place that fails falls back to a
 // gentle breeze with no place named, so the page never reports an outage.
 async function loadWind(city, refresh = false) {
+  const request = ++windRequest;
   const w = await windSource(city.lat, city.lon);
+  if (request !== windRequest || city !== selectedCity) return;
   if (w) {
     S.wind = w;
     S.live = true;
+    liveWindCity = city;
     S.windText = windLabel(city.name, w);
-  } else if (!(refresh && S.live)) {
+  } else if (!(refresh && S.live && liveWindCity === city)) {
     S.wind = GENTLE;
     S.live = false;
+    liveWindCity = null;
     S.windText = windLabel(city.name, null);
   }
   $('windText').textContent = S.windText;
 }
 
 citySel.addEventListener('change', () => {
+  const selection = ++windSelection;
+  windRequest++;
+  selectedCity = null;
   if (citySel.value !== 'here') {
-    loadWind(CITIES.find((c) => c.id === citySel.value));
+    selectedCity = CITIES.find((c) => c.id === citySel.value);
+    loadWind(selectedCity);
     return;
   }
   if (!navigator.geolocation) return;
   $('windText').textContent = 'Finding your wind';
   navigator.geolocation.getCurrentPosition(
-    (pos) => loadWind({ name: 'your area', lat: pos.coords.latitude, lon: pos.coords.longitude }),
+    (pos) => {
+      if (selection !== windSelection) return;
+      selectedCity = { name: 'your area', lat: pos.coords.latitude, lon: pos.coords.longitude };
+      loadWind(selectedCity);
+    },
     () => {
+      if (selection !== windSelection) return;
       $('windText').textContent = 'Location blocked. Pick a city instead.';
     },
     { timeout: 10000, maximumAge: 600000 },
@@ -431,10 +460,11 @@ setVariant(S.variant);
 say('Brush the toran. Tap the speaker to hear the bells.');
 const home = cityForTimeZone(Intl.DateTimeFormat().resolvedOptions().timeZone);
 citySel.value = home.id;
+selectedCity = home;
 loadWind(home);
 loadDoors().then((d) => {
   doors = d;
   hangDoors();
 });
-setInterval(() => citySel.value !== 'here' && loadWind(CITIES.find((c) => c.id === citySel.value), true), 15 * 60 * 1000);
+setInterval(() => selectedCity && loadWind(selectedCity, true), 15 * 60 * 1000);
 requestAnimationFrame(frame);

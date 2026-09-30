@@ -97,3 +97,33 @@ test('a broken storage still returns live wind', async () => {
   });
   assert.deepEqual(await get(1, 2), { speed: 3, dir: 0 });
 });
+
+test('a denied storage getter keeps cache and rate-limit backoff in memory', async () => {
+  const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
+  Object.defineProperty(globalThis, 'localStorage', {
+    configurable: true,
+    get() { throw new Error('storage denied'); },
+  });
+  try {
+    let calls = 0;
+    let clock = 0;
+    const get = createWindSource({
+      now: () => clock,
+      fetchImpl: async () => {
+        calls++;
+        if (calls > 1) return { ok: false, status: 429 };
+        return { ok: true, json: async () => ({ current: { wind_speed_10m: 3, wind_direction_10m: 0 } }) };
+      },
+    });
+    assert.deepEqual(await get(1, 2), { speed: 3, dir: 0 });
+    assert.deepEqual(await get(1, 2), { speed: 3, dir: 0 });
+    assert.equal(calls, 1);
+    clock = 31 * MIN;
+    assert.deepEqual(await get(1, 2), { speed: 3, dir: 0 });
+    assert.equal(await get(3, 4), null);
+    assert.equal(calls, 2);
+  } finally {
+    if (descriptor) Object.defineProperty(globalThis, 'localStorage', descriptor);
+    else delete globalThis.localStorage;
+  }
+});
