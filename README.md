@@ -7,7 +7,7 @@ Live at [toran.karanbansal.in](https://toran.karanbansal.in).
 ## What it does
 
 - **Brush or grab** the strings with a mouse or a finger. Each string ends in a small brass bell, tuned to Raag Bhupali, so any sweep stays in tune.
-- **Live wind** comes from [Open-Meteo](https://open-meteo.com/) for a city picked from your time zone. Pick another city or share your location to use your own wind. Above 12 km/h the wind rings the bells by itself.
+- **Live wind** comes from [Open-Meteo](https://open-meteo.com/) for a city picked from your time zone. Pick another city or share your location to use your own wind. Above 12 km/h the wind rings the bells by itself. Each place is cached for 30 minutes, and if the API fails, times out or rate-limits, the page quietly uses a gentle breeze and pauses requests for 30 minutes.
 - **Three torans.** Marigold, a mango-leaf thoranam, and a beaded moti toran. Each has its own link (`#genda`, `#aam`, `#moti`).
 - **Clip** records five seconds of the canvas with the bells, ready to save or share.
 - **Sound is off** until you tap the speaker, and motion is toned down when your system asks for reduced motion.

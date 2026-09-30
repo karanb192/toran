@@ -59,22 +59,79 @@ export function gust(t, i) {
   return Math.sin(t * 0.9 + i * 0.37) * 0.5 + Math.sin(t * 2.3 + i * 0.13) * 0.25 + Math.sin(t * 0.31 + 1.7) * 0.55;
 }
 
+export const GENTLE = { speed: 6, dir: 270 };
+
 export function windLabel(place, w) {
-  if (!w) return 'Wind unavailable, so a light breeze instead';
+  if (!w) return 'A gentle breeze';
   const speed = Math.round(w.speed);
   if (speed < 1) return `Still air in ${place}`;
   return `Wind in ${place}, ${speed} km/h from the ${compass(w.dir)}`;
 }
 
-export async function fetchWind(lat, lon, fetchImpl = fetch) {
+export async function fetchWind(lat, lon, fetchImpl = fetch, signal) {
   const url =
     'https://api.open-meteo.com/v1/forecast?latitude=' +
     lat.toFixed(2) +
     '&longitude=' +
     lon.toFixed(2) +
     '&current=wind_speed_10m,wind_direction_10m';
-  const r = await fetchImpl(url);
-  if (!r.ok) throw new Error('wind ' + r.status);
+  const r = await fetchImpl(url, { signal });
+  if (!r.ok) {
+    const err = new Error('wind ' + r.status);
+    err.status = r.status;
+    throw err;
+  }
   const j = await r.json();
-  return { speed: j.current.wind_speed_10m, dir: j.current.wind_direction_10m };
+  const speed = j?.current?.wind_speed_10m;
+  const dir = j?.current?.wind_direction_10m;
+  if (!Number.isFinite(speed) || !Number.isFinite(dir)) throw new Error('wind shape');
+  return { speed, dir };
+}
+
+const MIN = 60 * 1000;
+
+// Wraps the weather API so a visitor never sees it fail. Answers come from a per-place cache,
+// requests time out, and a 429 pauses every request for a while. get() resolves to a wind or
+// null and never rejects; null means "no fresh wind", and the caller decides what to keep.
+export function createWindSource({
+  fetchImpl = (...a) => fetch(...a),
+  storage = globalThis.localStorage,
+  now = () => Date.now(),
+  ttl = 30 * MIN,
+  backoff = 30 * MIN,
+  timeout = 5000,
+} = {}) {
+  const read = (k) => {
+    try {
+      return JSON.parse(storage.getItem(k));
+    } catch {
+      return null;
+    }
+  };
+  const write = (k, v) => {
+    try {
+      storage.setItem(k, JSON.stringify(v));
+    } catch {}
+  };
+  const PAUSE = 'toran:wind:pause';
+
+  return async function get(lat, lon) {
+    const key = `toran:wind:${lat.toFixed(2)},${lon.toFixed(2)}`;
+    const cached = read(key);
+    if (cached && now() - cached.t < ttl) return { speed: cached.speed, dir: cached.dir };
+    const stale = cached ? { speed: cached.speed, dir: cached.dir } : null;
+    if (now() < (read(PAUSE) || 0)) return stale;
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), timeout);
+    try {
+      const w = await fetchWind(lat, lon, fetchImpl, ctrl.signal);
+      write(key, { ...w, t: now() });
+      return w;
+    } catch (e) {
+      if (e && e.status === 429) write(PAUSE, now() + backoff);
+      return stale;
+    } finally {
+      clearTimeout(timer);
+    }
+  };
 }
