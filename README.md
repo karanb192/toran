@@ -1,24 +1,36 @@
 # Toran
 
-A toran is the garland of marigolds and mango leaves hung over an Indian doorway on festival days. This one hangs in your browser. Brush it and the bells ring. It sways with the live wind where you are.
+A toran is a garland hung over an Indian doorway on festival days. This one hangs in your browser. Brush the marigolds with a finger or mouse to ring the brass bells. The wind in your city sets the strings swaying.
 
-Live at [toran.karanbansal.in](https://toran.karanbansal.in).
+**[Play Toran](https://toran.karanbansal.in/)** and tap the speaker to hear the bells.
+
+[![Three doorway garlands sway as they are brushed: orange marigolds, green mango leaves and strings of beads.](docs/toran.gif)](https://toran.karanbansal.in/)
 
 ## What it does
 
-- **Brush or grab** the strings with a mouse or a finger. One finger owns a drag until it lifts or the gesture is cancelled. Each string ends in a small brass bell, tuned to Raag Bhupali, so any sweep stays in tune.
-- **Live wind** comes from [Open-Meteo](https://open-meteo.com/) for a city picked from your time zone. Pick another city or share your location to use your own wind. Above 12 km/h the wind rings the bells by itself. Each place is cached for 30 minutes, and if the API fails, times out or rate-limits, the page quietly uses a gentle breeze and pauses requests for 30 minutes.
-- City and location wind refresh through the same timer. Late responses from a previous selection cannot change the current wind. A failed refresh preserves a reading only for the same selected place. If browser storage is blocked, the cache and rate-limit pause last for the current page session.
-- **Three torans.** Marigold, a mango-leaf thoranam, and a beaded moti toran. Each has its own link (`#genda`, `#aam`, `#moti`).
-- **Clip** records five seconds of the canvas with the bells, ready to save or share.
-- **Sound is off on your first visit.** The speaker remembers your on/off choice in this browser, including after a refresh. If you left sound on, tap, click or press a key to resume the bells when you return. Motion is toned down when your system asks for reduced motion. Reduced-motion captions stay visible for seven seconds, then hide without animation.
-- There is one secret.
+- Grab a string and let it swing. Each bell plays a note from Raag Bhupali.
+- Try the [marigolds](https://toran.karanbansal.in/#genda), [mango-leaf thoranam](https://toran.karanbansal.in/#aam) or [beaded moti toran](https://toran.karanbansal.in/#moti).
+- Pick a city or share your location. When the wind rises above 12 km/h, it rings the bells on its own.
+- Tap a leaf with a yellow knot to read someone's memory of a door. You can [hang a memory of your own](https://github.com/karanb192/toran/issues/new?template=door.yml).
 
-The page is plain HTML, CSS and JavaScript with no build step and no runtime dependencies. Flowers, beads, leaves and bells are drawn in code, and the bells are synthesized with the Web Audio API, so a first visit loads under 100 KB of code and no images.
+There is one secret.
+
+## How it works
+
+JavaScript draws the garland on an HTML canvas. Verlet physics lets each string sag and swing. The Web Audio API synthesizes the bell notes. The page has no build step or runtime dependencies.
+
+<details>
+<summary>Wind, sound and recording</summary>
+
+The first city comes from your time zone. Toran caches [Open-Meteo](https://open-meteo.com/) wind readings for 30 minutes. If a request fails, it keeps the last reading for that place or uses a gentle breeze.
+
+The **Clip** button records five seconds on supported browsers. Turn on the speaker before recording to include the bells. Toran also follows your system's reduced-motion setting.
 
 The sound choice stays in local browser storage. If storage is blocked or cleared, the next visit starts muted. Restoring sound waits for an interaction to respect [browser audio policies](https://developer.chrome.com/blog/autoplay/#web-audio).
 
 On a first visit, the speaker pulses gently twice over three seconds to point out the bells. A page opened in a background tab waits until it becomes visible before starting or marking the hint as seen. The hint stops when you tap the speaker and does not repeat after a reload or a saved sound choice. Reduced motion and blocked storage skip the hint.
+
+</details>
 
 ## Run it
 
