@@ -30,6 +30,8 @@ test('reduced motion keeps instructions and style captions visible', async ({ pa
 });
 
 test('reduced-motion captions hide after seven seconds and reset for new text', async ({ page }) => {
+  // An idle door story would replace the caption under test and start its own timer.
+  await page.route('**/doors.json', (route) => route.fulfill({ json: [] }));
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.clock.install();
   await page.goto('/');
